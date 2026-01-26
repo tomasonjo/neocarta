@@ -23,6 +23,19 @@ column_id_key_constraint = column_id_unique_constraint.replace("UNIQUE", "NODE K
 
 
 def is_enterprise_edition(neo4j_driver: Driver) -> bool:
+    """
+    Check if using enterprise edition of Neo4j.
+
+    Parameters
+    ----------
+    neo4j_driver: Driver
+        The Neo4j driver to use.
+
+    Returns
+    -------
+    bool
+        True if the Neo4j database is running in enterprise edition, False otherwise.
+    """
     try:
         results = neo4j_driver.execute_query(
             query_="""
@@ -41,7 +54,8 @@ return name, versions, edition
 
 
 def write_neo4j_constraints(neo4j_driver: Driver) -> dict:
-    """Write constraints to the database according to which edition is being used.
+    """
+    Write constraints to the database according to which edition is being used.
 
     Parameters
     ----------

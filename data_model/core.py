@@ -7,6 +7,8 @@ from typing import Optional
 
 
 class Database(BaseModel):
+    """A Database node"""
+
     id: str = Field(..., description="The unique identifier for the database")
     name: str = Field(..., description="The name of the database")
     description: Optional[str] = Field(
@@ -18,6 +20,8 @@ class Database(BaseModel):
 
 
 class Table(BaseModel):
+    """A Table node"""
+
     id: str = Field(..., description="The unique identifier for the table")
     name: str = Field(..., description="The name of the table")
     description: Optional[str] = Field(
@@ -29,6 +33,8 @@ class Table(BaseModel):
 
 
 class Column(BaseModel):
+    """A Column node"""
+
     id: str = Field(..., description="The unique identifier for the column")
     name: str = Field(..., description="The name of the column")
     description: Optional[str] = Field(
@@ -58,16 +64,31 @@ class Column(BaseModel):
 
 
 class ContainsTable(BaseModel):
+    """
+    A relationship between a database and a table
+    (Database)-[:CONTAINS_TABLE]->(Table)
+    """
+
     database_id: str = Field(..., description="The unique identifier for the database")
     table_id: str = Field(..., description="The unique identifier for the table")
 
 
 class HasColumn(BaseModel):
+    """
+    A relationship between a table and a column
+    (Table)-[:HAS_COLUMN]->(Column)
+    """
+
     table_id: str = Field(..., description="The unique identifier for the table")
     column_id: str = Field(..., description="The unique identifier for the column")
 
 
 class References(BaseModel):
+    """
+    A relationship between two columns
+    (Column)-[:REFERENCES]->(Column)
+    """
+
     source_column_id: str = Field(
         ..., description="The unique identifier for the source column"
     )

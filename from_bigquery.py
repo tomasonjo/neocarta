@@ -277,7 +277,7 @@ def load_contains_table_relationships(
     UNWIND $rows as row
     MATCH (d:Database {id: row.database_id})
     MERGE (t:Table {id: row.table_id})
-    MERGE (d)-[:CONTAINS]->(t)
+    MERGE (d)-[:CONTAINS_TABLE]->(t)
     """,
         parameters_={"rows": [n.model_dump() for n in contains_table_relationships]},
         routing_=RoutingControl.WRITE,
@@ -293,7 +293,7 @@ def load_has_column_relationships(
     UNWIND $rows as row
     MATCH (t:Table {id: row.table_id})
     MERGE (c:Column {id: row.column_id})
-    MERGE (t)-[:HAS]->(c)
+    MERGE (t)-[:HAS_COLUMN]->(c)
     """,
         parameters_={"rows": [n.model_dump() for n in has_column_relationships]},
         routing_=RoutingControl.WRITE,
