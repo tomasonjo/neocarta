@@ -18,7 +18,8 @@ def create_vector_index(
 
     Returns
     -------
-    None
+    dict
+        The summary of the vector index created.
     """
 
     assert node_label in ["Database", "Table", "Column"], (
@@ -40,4 +41,4 @@ CREATE VECTOR INDEX {node_label.lower() + "_vector_index"} IF NOT EXISTS
     _, summary, _ = neo4j_driver.execute_query(
         query_=vector_index_query, routing_=RoutingControl.WRITE
     )
-    print(summary.counters.__dict__)
+    return summary.counters.__dict__
