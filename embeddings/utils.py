@@ -6,7 +6,10 @@ from math import ceil
 
 
 def get_nodes_to_embed(
-    neo4j_driver: Driver, node_label: str, min_length: int = 20
+    neo4j_driver: Driver,
+    node_label: str,
+    min_length: int = 20,
+    database_name: str = "neo4j",
 ) -> pd.DataFrame:
     """
     Get the nodes to embed.
@@ -19,6 +22,8 @@ def get_nodes_to_embed(
         The label of the node to embed. Must be one of: Database, Table, Column.
     min_length: int
         The minimum length of the description to embed. Must be greater than 0.
+    database_name: str
+        The name of the database to get nodes from.
 
     Returns
     -------
@@ -46,6 +51,7 @@ RETURN n.id as id,
     results = neo4j_driver.execute_query(
         query_=query,
         parameters_={"min_length": min_length},
+        database_=database_name,
         routing_=RoutingControl.READ,
         result_transformer_=lambda x: x.data(),
     )
@@ -134,7 +140,10 @@ async def create_embeddings_in_batches(
 
 
 def write_embeddings_to_graph(
-    embeddings_df: pd.DataFrame, node_label: str, neo4j_driver: Driver
+    embeddings_df: pd.DataFrame,
+    node_label: str,
+    neo4j_driver: Driver,
+    database_name: str = "neo4j",
 ) -> None:
     """
     Write embeddings to Neo4j graph for a given node label.
@@ -148,6 +157,8 @@ def write_embeddings_to_graph(
         The label of the node to write embeddings to. Must be one of: Database, Table, Column.
     neo4j_driver: Driver
         The Neo4j driver to use.
+    database_name: str
+        The name of the database to write embeddings to.
     """
 
     assert node_label in ["Database", "Table", "Column"], (
@@ -163,6 +174,7 @@ def write_embeddings_to_graph(
     _, summary, _ = neo4j_driver.execute_query(
         query_=query,
         parameters_={"rows": embeddings_df.to_dict(orient="records")},
+        database_=database_name,
         routing_=RoutingControl.WRITE,
     )
 

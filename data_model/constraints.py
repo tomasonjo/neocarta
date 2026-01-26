@@ -22,7 +22,7 @@ FOR (c:Column) REQUIRE c.id IS UNIQUE;
 column_id_key_constraint = column_id_unique_constraint.replace("UNIQUE", "NODE KEY")
 
 
-def is_enterprise_edition(neo4j_driver: Driver) -> bool:
+def is_enterprise_edition(neo4j_driver: Driver, database_name: str = "neo4j") -> bool:
     """
     Check if using enterprise edition of Neo4j.
 
@@ -30,6 +30,8 @@ def is_enterprise_edition(neo4j_driver: Driver) -> bool:
     ----------
     neo4j_driver: Driver
         The Neo4j driver to use.
+    database_name: str
+        The name of the database to check the edition of.
 
     Returns
     -------
@@ -46,6 +48,7 @@ return name, versions, edition
 """,
             routing_=RoutingControl.READ,
             result_transformer_=lambda x: x.data(),
+            database_=database_name,
         )
         return results[0]["edition"] == "enterprise"
     except Exception as e:
@@ -53,7 +56,7 @@ return name, versions, edition
         return False
 
 
-def write_neo4j_constraints(neo4j_driver: Driver) -> dict:
+def write_neo4j_constraints(neo4j_driver: Driver, database_name: str = "neo4j") -> dict:
     """
     Write constraints to the database according to which edition is being used.
 
@@ -61,6 +64,8 @@ def write_neo4j_constraints(neo4j_driver: Driver) -> dict:
     ----------
     neo4j_driver: Driver
         The Neo4j driver to write constraints to.
+    database_name: str
+        The name of the database to write constraints to.
 
     Returns
     -------
@@ -68,7 +73,7 @@ def write_neo4j_constraints(neo4j_driver: Driver) -> dict:
         The summary of the constraints written.
     """
 
-    is_enterprise = is_enterprise_edition(neo4j_driver)
+    is_enterprise = is_enterprise_edition(neo4j_driver, database_name)
     summaries = [{"enterprise_edition": is_enterprise}]
 
     if is_enterprise:
@@ -79,7 +84,7 @@ def write_neo4j_constraints(neo4j_driver: Driver) -> dict:
             column_id_key_constraint,
         ]:
             _, summary, _ = neo4j_driver.execute_query(
-                query_=c, routing_=RoutingControl.WRITE
+                query_=c, routing_=RoutingControl.WRITE, database_=database_name
             )
             summaries.append(summary.counters.__dict__)
     else:
@@ -90,7 +95,7 @@ def write_neo4j_constraints(neo4j_driver: Driver) -> dict:
             column_id_unique_constraint,
         ]:
             _, summary, _ = neo4j_driver.execute_query(
-                query_=c, routing_=RoutingControl.WRITE
+                query_=c, routing_=RoutingControl.WRITE, database_=database_name
             )
             summaries.append(summary.counters.__dict__)
     return summaries

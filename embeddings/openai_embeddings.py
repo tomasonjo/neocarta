@@ -103,6 +103,7 @@ async def openai_embeddings_workflow(
     embedding_model: str = "text-embedding-3-small",
     dimensions: int = 768,
     node_labels: list[str] = ["Database", "Table", "Column"],
+    database_name: str = "neo4j",
 ) -> None:
     """
     This workflow
@@ -122,6 +123,8 @@ async def openai_embeddings_workflow(
         The dimensions of the vector index. Must be an integer greater than 0.
     node_labels: list[str]
         The labels of the nodes to embed. Labels must be one of: Database, Table, Column.
+    database_name: str
+        The name of the database to write embeddings to.
     """
     assert all(label in ["Database", "Table", "Column"] for label in node_labels), (
         "Node labels must be one of: Database, Table, Column"
@@ -133,14 +136,18 @@ async def openai_embeddings_workflow(
         # create vector index, if it doesn't exist
         create_vector_index(neo4j_driver, label, dimensions)
         # get nodes to embed
-        nodes_to_embed = get_nodes_to_embed(neo4j_driver, label, 20)
+        nodes_to_embed = get_nodes_to_embed(neo4j_driver, label, 20, database_name)
         # create embeddings
         embeddings = await create_embeddings(
             embedding_client, embedding_model, dimensions, nodes_to_embed, 100
         )
         if len(embeddings) > 0:
             # ingest embeddings into the Neo4j database
-            print(write_embeddings_to_graph(embeddings, label, neo4j_driver))
+            print(
+                write_embeddings_to_graph(
+                    embeddings, label, neo4j_driver, database_name
+                )
+            )
         else:
             print(f"No embeddings found for {label} nodes")
 
