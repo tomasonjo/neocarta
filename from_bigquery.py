@@ -146,7 +146,9 @@ def load_database_nodes(database_nodes: list[Database], neo4j_driver: Driver) ->
     _, summary, _ = neo4j_driver.execute_query(
         query_="""
     UNWIND $rows as row
-    MERGE (d:Database {id: row.id, name: row.name, description: row.description})
+    MERGE (d:Database {id: row.id})
+    SET d.name = row.name, 
+        d.description = row.description
     """, 
         parameters_={
             "rows": [n.model_dump() for n in database_nodes]
@@ -159,7 +161,9 @@ def load_table_nodes(table_nodes: list[Table], neo4j_driver: Driver) -> dict:
     _, summary, _ = neo4j_driver.execute_query(
         query_="""
     UNWIND $rows as row
-    MERGE (t:Table {id: row.id, name: row.name, description: row.description})
+    MERGE (t:Table {id: row.id})
+    SET t.name = row.name, 
+        t.description = row.description
     """, 
         parameters_={
             "rows": [n.model_dump() for n in table_nodes]
@@ -171,7 +175,13 @@ def load_column_nodes(column_nodes: list[Column], neo4j_driver: Driver) -> dict:
     _, summary, _ = neo4j_driver.execute_query(
         query_="""
     UNWIND $rows as row
-    MERGE (c:Column {id: row.id, name: row.name, description: row.description, type: row.type, nullable: row.nullable, is_primary_key: row.is_primary_key, is_foreign_key: row.is_foreign_key})
+    MERGE (c:Column {id: row.id})
+    SET c.name = row.name, 
+        c.description = row.description, 
+        c.type = row.type, 
+        c.nullable = row.nullable, 
+        c.is_primary_key = row.is_primary_key, 
+        c.is_foreign_key = row.is_foreign_key
     """, 
         parameters_={
             "rows": [n.model_dump() for n in column_nodes]
