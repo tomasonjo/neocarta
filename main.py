@@ -35,7 +35,12 @@ async def main():
     print("Generating embeddings for nodes...")
     # create embeddings for the nodes
     await openai_embeddings_workflow(
-        neo4j_driver, embedding_client, "text-embedding-3-small", 768, node_labels, neo4j_database
+        neo4j_driver,
+        embedding_client,
+        "text-embedding-3-small",
+        768,
+        node_labels,
+        neo4j_database,
     )
 
     print("Workflow completed successfully!")
