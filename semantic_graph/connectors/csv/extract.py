@@ -1,11 +1,11 @@
 """CSV Extractor for reading and validating CSV files into a cache."""
 
-import pandas as pd
 from pathlib import Path
-from typing import Optional
+from typing import ClassVar
+
+import pandas as pd
 
 from .models import CSVExtractorCache
-
 
 # Required columns per entity type
 REQUIRED_COLUMNS: dict[str, list[str]] = {
@@ -14,8 +14,14 @@ REQUIRED_COLUMNS: dict[str, list[str]] = {
     "table": ["database_id", "schema_id", "table_name"],
     "column": ["database_id", "schema_id", "table_name", "column_name"],
     "column_references": [
-        "source_database_id", "source_schema_id", "source_table_name", "source_column_name",
-        "target_database_id", "target_schema_id", "target_table_name", "target_column_name",
+        "source_database_id",
+        "source_schema_id",
+        "source_table_name",
+        "source_column_name",
+        "target_database_id",
+        "target_schema_id",
+        "target_table_name",
+        "target_column_name",
     ],
     "value": ["database_id", "schema_id", "table_name", "column_name", "value"],
     "query": ["query_id", "content"],
@@ -66,7 +72,7 @@ class CSVExtractor:
     and stores the resulting DataFrames in an internal cache.
     """
 
-    DEFAULT_FILE_MAP: dict[str, str] = {
+    DEFAULT_FILE_MAP: ClassVar[dict[str, str]] = {
         "database": "database_info.csv",
         "schema": "schema_info.csv",
         "table": "table_info.csv",
@@ -84,8 +90,8 @@ class CSVExtractor:
     def __init__(
         self,
         csv_directory: str,
-        csv_file_map: Optional[dict[str, str]] = None,
-    ):
+        csv_file_map: dict[str, str] | None = None,
+    ) -> None:
         """
         Initialize the CSV extractor.
 
@@ -115,57 +121,69 @@ class CSVExtractor:
 
     @property
     def database_info(self) -> pd.DataFrame:
+        """Return cached database info DataFrame."""
         return self._cache.get("database_info", pd.DataFrame())
 
     @property
     def schema_info(self) -> pd.DataFrame:
+        """Return cached schema info DataFrame."""
         return self._cache.get("schema_info", pd.DataFrame())
 
     @property
     def table_info(self) -> pd.DataFrame:
+        """Return cached table info DataFrame."""
         return self._cache.get("table_info", pd.DataFrame())
 
     @property
     def column_info(self) -> pd.DataFrame:
+        """Return cached column info DataFrame."""
         return self._cache.get("column_info", pd.DataFrame())
 
     @property
     def column_references_info(self) -> pd.DataFrame:
+        """Return cached column references info DataFrame."""
         return self._cache.get("column_references_info", pd.DataFrame())
 
     @property
     def value_info(self) -> pd.DataFrame:
+        """Return cached value info DataFrame."""
         return self._cache.get("value_info", pd.DataFrame())
 
     @property
     def query_info(self) -> pd.DataFrame:
+        """Return cached query info DataFrame."""
         return self._cache.get("query_info", pd.DataFrame())
 
     @property
     def query_table_info(self) -> pd.DataFrame:
+        """Return cached query-to-table mapping DataFrame."""
         return self._cache.get("query_table_info", pd.DataFrame())
 
     @property
     def query_column_info(self) -> pd.DataFrame:
+        """Return cached query-to-column mapping DataFrame."""
         return self._cache.get("query_column_info", pd.DataFrame())
 
     @property
     def glossary_info(self) -> pd.DataFrame:
+        """Return cached glossary info DataFrame."""
         return self._cache.get("glossary_info", pd.DataFrame())
 
     @property
     def category_info(self) -> pd.DataFrame:
+        """Return cached category info DataFrame."""
         return self._cache.get("category_info", pd.DataFrame())
 
     @property
     def business_term_info(self) -> pd.DataFrame:
+        """Return cached business term info DataFrame."""
         return self._cache.get("business_term_info", pd.DataFrame())
 
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _read_csv(self, filename: str) -> Optional[pd.DataFrame]:
+    def _read_csv(self, filename: str) -> pd.DataFrame | None:
         """Read a CSV file if it exists, returning None otherwise."""
         filepath = self.csv_directory / filename
         if not filepath.exists():
@@ -197,7 +215,7 @@ class CSVExtractor:
                 f"Required columns for '{entity_key}': {required}"
             )
 
-    def _extract(self, entity_key: str, cache_key: str) -> Optional[pd.DataFrame]:
+    def _extract(self, entity_key: str, cache_key: str) -> pd.DataFrame | None:
         """
         Read, validate, and cache a single CSV file.
 
@@ -208,7 +226,7 @@ class CSVExtractor:
         cache_key : str
             Key used to store the DataFrame in the cache.
 
-        Returns
+        Returns:
         -------
         pd.DataFrame or None
             The loaded DataFrame, or None if the file does not exist.
@@ -231,46 +249,58 @@ class CSVExtractor:
     # Public extract methods
     # ------------------------------------------------------------------
 
-    def extract_database_info(self) -> Optional[pd.DataFrame]:
+    def extract_database_info(self) -> pd.DataFrame | None:
+        """Extract and cache database info from CSV."""
         return self._extract("database", "database_info")
 
-    def extract_schema_info(self) -> Optional[pd.DataFrame]:
+    def extract_schema_info(self) -> pd.DataFrame | None:
+        """Extract and cache schema info from CSV."""
         return self._extract("schema", "schema_info")
 
-    def extract_table_info(self) -> Optional[pd.DataFrame]:
+    def extract_table_info(self) -> pd.DataFrame | None:
+        """Extract and cache table info from CSV."""
         return self._extract("table", "table_info")
 
-    def extract_column_info(self) -> Optional[pd.DataFrame]:
+    def extract_column_info(self) -> pd.DataFrame | None:
+        """Extract and cache column info from CSV."""
         return self._extract("column", "column_info")
 
-    def extract_column_references_info(self) -> Optional[pd.DataFrame]:
+    def extract_column_references_info(self) -> pd.DataFrame | None:
+        """Extract and cache column references info from CSV."""
         return self._extract("column_references", "column_references_info")
 
-    def extract_value_info(self) -> Optional[pd.DataFrame]:
+    def extract_value_info(self) -> pd.DataFrame | None:
+        """Extract and cache value info from CSV."""
         return self._extract("value", "value_info")
 
-    def extract_query_info(self) -> Optional[pd.DataFrame]:
+    def extract_query_info(self) -> pd.DataFrame | None:
+        """Extract and cache query info from CSV."""
         return self._extract("query", "query_info")
 
-    def extract_query_table_info(self) -> Optional[pd.DataFrame]:
+    def extract_query_table_info(self) -> pd.DataFrame | None:
+        """Extract and cache query-to-table mapping from CSV."""
         return self._extract("query_table", "query_table_info")
 
-    def extract_query_column_info(self) -> Optional[pd.DataFrame]:
+    def extract_query_column_info(self) -> pd.DataFrame | None:
+        """Extract and cache query-to-column mapping from CSV."""
         return self._extract("query_column", "query_column_info")
 
-    def extract_glossary_info(self) -> Optional[pd.DataFrame]:
+    def extract_glossary_info(self) -> pd.DataFrame | None:
+        """Extract and cache glossary info from CSV."""
         return self._extract("glossary", "glossary_info")
 
-    def extract_category_info(self) -> Optional[pd.DataFrame]:
+    def extract_category_info(self) -> pd.DataFrame | None:
+        """Extract and cache category info from CSV."""
         return self._extract("category", "category_info")
 
-    def extract_business_term_info(self) -> Optional[pd.DataFrame]:
+    def extract_business_term_info(self) -> pd.DataFrame | None:
+        """Extract and cache business term info from CSV."""
         return self._extract("business_term", "business_term_info")
 
     def extract_all(
         self,
-        include_nodes: Optional[list[str]] = None,
-        include_relationships: Optional[list[str]] = None,
+        include_nodes: list[str] | None = None,
+        include_relationships: list[str] | None = None,
     ) -> None:
         """
         Extract and validate CSV files, caching results.
@@ -295,8 +325,7 @@ class CSVExtractor:
             unknown = sorted(set(include_nodes) - NODE_ENTITIES.keys())
             if unknown:
                 raise ValueError(
-                    f"Unknown node types: {unknown}. "
-                    f"Valid values: {sorted(NODE_ENTITIES.keys())}"
+                    f"Unknown node types: {unknown}. Valid values: {sorted(NODE_ENTITIES.keys())}"
                 )
 
         if include_relationships is not None:
@@ -311,9 +340,9 @@ class CSVExtractor:
             needed: set[str] = set(NODE_ENTITIES.values()) | set(REL_ENTITIES.values())
         else:
             needed = set()
-            for name in (include_nodes or []):
+            for name in include_nodes or []:
                 needed.add(NODE_ENTITIES[name])
-            for name in (include_relationships or []):
+            for name in include_relationships or []:
                 needed.add(REL_ENTITIES[name])
 
         print(f"Extracting CSV files from {self.csv_directory}...")

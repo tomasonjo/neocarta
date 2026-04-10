@@ -1,18 +1,23 @@
+"""Example: load Dataplex metadata into the semantic graph."""
+
 import argparse
 import os
+
 from dotenv import load_dotenv
+from google.cloud import dataplex_v1
 from neo4j import GraphDatabase
 from openai import OpenAI
-from google.cloud import dataplex_v1
-from semantic_graph.embeddings.openai_embeddings import OpenAIEmbeddingsConnector
+
 from semantic_graph.connectors.dataplex import DataplexConnector
+from semantic_graph.embeddings.openai_embeddings import OpenAIEmbeddingsConnector
 
 
 def main(
     with_embeddings: bool = True,
     include_schema: bool = True,
     include_glossary: bool = True,
-):
+) -> None:
+    """Run the Dataplex connector and optionally compute embeddings."""
     load_dotenv()
     print("Starting Dataplex connector...")
     print("Creating drivers and clients...")
@@ -25,8 +30,6 @@ def main(
 
     catalog_client = dataplex_v1.CatalogServiceClient()
     glossary_client = dataplex_v1.BusinessGlossaryServiceClient()
-
-
 
     # Node labels to embed — filtered to what was actually ingested
     node_labels = []

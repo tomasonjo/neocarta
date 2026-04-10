@@ -1,10 +1,12 @@
+"""Neo4j constraint definitions for the RDBMS data model."""
+
 from semantic_graph.ingest.constraints import (
-    database_id_unique_constraint,
     database_id_key_constraint,
-    schema_id_unique_constraint,
+    database_id_unique_constraint,
     schema_id_key_constraint,
-    value_id_unique_constraint,
+    schema_id_unique_constraint,
     value_id_key_constraint,
+    value_id_unique_constraint,
 )
 
 table_id_unique_constraint = """
@@ -73,4 +75,3 @@ KEY_CONSTRAINTS_LOOKUP = {
     "BusinessTerm": business_term_id_key_constraint,
     "Query": query_id_key_constraint,
 }
-

@@ -1,6 +1,7 @@
 """Retrieval quality metrics for semantic layer evaluation."""
 
 from typing import Any
+
 from mcp_server.models import TableContext
 
 
@@ -13,7 +14,7 @@ def extract_objects_from_table_contexts(table_contexts: list[TableContext]) -> d
     table_contexts : list[TableContext]
         Retrieved table contexts from MCP server
 
-    Returns
+    Returns:
     -------
     dict
         Dictionary with:
@@ -61,7 +62,7 @@ def score_retrieval(
         Ground truth required objects from sqlglot parse
         {"tables": set, "columns": set, "joins": set}
 
-    Returns
+    Returns:
     -------
     dict
         Retrieval scores:
@@ -142,7 +143,7 @@ def serialize_table_contexts(table_contexts: list[TableContext]) -> list[str]:
     table_contexts : list[TableContext]
         Table contexts from MCP server
 
-    Returns
+    Returns:
     -------
     list[str]
         Serialized context strings, one per table
@@ -171,14 +172,14 @@ def serialize_table_contexts(table_contexts: list[TableContext]) -> list[str]:
 
             # Add references
             if col.references:
-                for ref in col.references:
-                    lines.append(f"    -> references {ref}")
+                lines.extend(f"    -> references {ref}" for ref in col.references)
 
         # Add joins
         if ctx.joins:
             lines.append("Joins:")
-            for join in ctx.joins:
-                lines.append(f"  - {join.table_name} on {', '.join(join.column_names)}")
+            lines.extend(
+                f"  - {join.table_name} on {', '.join(join.column_names)}" for join in ctx.joins
+            )
 
         serialized.append("\n".join(lines))
 

@@ -2,52 +2,54 @@
 
 import asyncio
 import os
+from collections import Counter
 from pathlib import Path
+
 from dotenv import load_dotenv
 from google.cloud import bigquery
 from openai import AsyncOpenAI
 
 from eval import (
-    get_ecommerce_eval_samples,
+    BigQuerySchemaRetriever,
     EvalRunner,
     build_delta_report,
-    print_report,
     export_results_to_json,
-    BigQuerySchemaRetriever,
+    get_ecommerce_eval_samples,
+    print_report,
 )
+from eval.datasets.schema_registry import persist_graph_schema_from_mcp
 
 
-async def main():
+async def main() -> None:
     """Run semantic layer evaluation."""
     # Load environment
     load_dotenv()
 
-    print("="*80)
+    print("=" * 80)
     print("SEMANTIC LAYER EVALUATION")
-    print("="*80)
+    print("=" * 80)
 
     # Configuration
-    PROJECT_ROOT = Path(__file__).parent.parent
-    SEMANTIC_MCP_SERVER = "mcp-server"
-    FULL_SCHEMA_PATH = PROJECT_ROOT / "eval" / "datasets" / "schemas" / "demo_ecommerce_schema.json"
+    project_root = Path(__file__).parent.parent
+    semantic_mcp_server = "mcp-server"
+    full_schema_path = project_root / "eval" / "datasets" / "schemas" / "demo_ecommerce_schema.json"
 
     # Persist schema if it doesn't exist
-    if not FULL_SCHEMA_PATH.exists():
-        print(f"\n📥 Schema file not found. Persisting from MCP server...")
-        print(f"   Source: {SEMANTIC_MCP_SERVER}")
-        print(f"   Target: {FULL_SCHEMA_PATH}")
+    if not full_schema_path.exists():
+        print("\n📥 Schema file not found. Persisting from MCP server...")
+        print(f"   Source: {semantic_mcp_server}")
+        print(f"   Target: {full_schema_path}")
 
-        from eval.datasets.schema_registry import persist_graph_schema_from_mcp
-        await persist_graph_schema_from_mcp(SEMANTIC_MCP_SERVER, FULL_SCHEMA_PATH)
-        print(f"   ✓ Schema persisted successfully")
+        await persist_graph_schema_from_mcp(semantic_mcp_server, full_schema_path)
+        print("   ✓ Schema persisted successfully")
 
     # Initialize clients
     bq_client = bigquery.Client(project=os.getenv("GCP_PROJECT_ID"))
     llm_client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
     # Load schema baseline
-    print(f"\n📁 Loading schema baseline from {FULL_SCHEMA_PATH}")
-    full_schema_retriever = BigQuerySchemaRetriever(FULL_SCHEMA_PATH)
+    print(f"\n📁 Loading schema baseline from {full_schema_path}")
+    full_schema_retriever = BigQuerySchemaRetriever(full_schema_path)
     print(f"   Tables: {full_schema_retriever.get_num_tables()}")
     print(f"   Columns: {full_schema_retriever.get_num_columns()}")
 
@@ -57,19 +59,18 @@ async def main():
     print(f"   Total samples: {len(samples)}")
 
     # Count by archetype
-    from collections import Counter
     archetypes = Counter(s.archetype for s in samples)
     print("   Distribution:")
     for arch, count in archetypes.items():
         print(f"     - {arch}: {count}")
 
     # Initialize runner
-    print(f"\n🚀 Initializing evaluation runner...")
-    print(f"   MCP Server: {SEMANTIC_MCP_SERVER}")
-    print(f"   LLM Model: gpt-4o")
+    print("\n🚀 Initializing evaluation runner...")
+    print(f"   MCP Server: {semantic_mcp_server}")
+    print("   LLM Model: gpt-4o")
 
     runner = EvalRunner(
-        semantic_mcp_server_path=SEMANTIC_MCP_SERVER,
+        semantic_mcp_server_path=semantic_mcp_server,
         full_schema_retriever=full_schema_retriever,
         bq_client=bq_client,
         llm_client=llm_client,
@@ -78,22 +79,22 @@ async def main():
     )
 
     # Run evaluation
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("RUNNING EVALUATION")
-    print("="*80)
+    print("=" * 80)
 
     results = await runner.run_eval(samples)
 
     # Build report
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("BUILDING REPORT")
-    print("="*80)
+    print("=" * 80)
 
     report = build_delta_report(results)
     print_report(report)
 
     # Export results
-    output_dir = PROJECT_ROOT / "eval" / "results"
+    output_dir = project_root / "eval" / "results"
     output_dir.mkdir(exist_ok=True)
 
     results_path = output_dir / "eval_results.json"
