@@ -188,6 +188,7 @@ FROM `{self.project_id}`.`{dataset_id}`.INFORMATION_SCHEMA.TABLES as tables
         ON tables.table_catalog = table_options.table_catalog
         AND tables.table_schema = table_options.table_schema
         AND tables.table_name = table_options.table_name
+        AND table_options.option_name = 'description'
 WHERE table_type = 'BASE TABLE'
 ORDER BY table_name
 """).to_dataframe()
