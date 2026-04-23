@@ -5,6 +5,7 @@ import hashlib
 import pandas as pd
 from google.cloud import bigquery
 
+from ...utils.generate_id import generate_column_id
 from .models import SchemaExtractorCache
 
 
@@ -378,9 +379,9 @@ ORDER BY tc.table_name, tc.constraint_type, kcu.ordinal_position
 
         result["unique_value"] = result["unique_value"].astype(str)
 
-        # Add column_id in the format: project_id.dataset_id.table_name.column_name
-        result["column_id"] = (
-            self.project_id + "." + dataset_id + "." + table_name + "." + result["column_name"]
+        # Add column_id using normalized ID generation
+        result["column_id"] = result["column_name"].apply(
+            lambda col: generate_column_id(self.project_id, dataset_id, table_name, col)
         )
 
         # Hash the unique value and append to column_id for value_id
